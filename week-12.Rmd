@@ -16,6 +16,8 @@ week_12 <- shaming %>%
   mutate(treatment = fct_relevel(treatment, "Control")) %>% 
   mutate(solo = ifelse(hh_size == 1, TRUE, FALSE)) %>% 
   select(-general_04, -no_of_names, -birth_year, -hh_size) 
+
+week_12_sample <- sample_n(week_12, 1000)
 ```
 
 
@@ -25,15 +27,47 @@ week_12 <- shaming %>%
 
 age ~ sex + solo + primary_04 + primary_06 + treatment + sex:solo
                     
-* Is this a causal or predictive model? Why?
+* Is this a causal or predictive model? Why? Predictive because no manipulation.
 
 * Interpret the fitted model. 
 
+Intercept - a female who doesn't live alone, that didn't vote in either the 04 or 06 primaries and was in hte control group.
+
+sexMale - the predicted change in age moving from female to male is a decrease of 0.0938 yrs
+
+soloTRUE - woman living alone lives 8.2455 more yrs
+
+man living alone lives Intercept + sexMale + soloTRUE + soloTRUE:sexMale years.
+
+primary_04Yes - the predicted change in age when someone votes in the 04 primary 
+(possibly nonsensical, is age correlated with civic engagement?)
+
+primary_06 - the predicted change in age when someone votes in the 06 primary 
+
+treatment coefficients - the predicted change in age when someone undergoes some shaming treatment 
+
+sexMale:soloTRUE - unique amplifying effect of being a man living alone, also difference-in-differences estimator (diff between diff of woman living with others --> living alone and diff of man living with others --> living alone) 
+
 * Should we keep all these variables? And the interaction term?
+
+No - eliminate treatment and sex.
 
 * Are you surprised about the meaningfulness, or lack thereof, for the treatment variables?
 
+Surprised that sex seems to have little predictive power.
 
+```{r sc1}
+
+# Adding more explanatory variables is controlling for the predictive power of more variables.
+
+fit_obj <- stan_glm(age ~ solo + primary_06,
+                    data = week_12_sample,
+                    refresh = 0, 
+                    seed = 9)
+
+print(fit_obj, digits = 4)
+
+```
 
 
 ## Scene 2
